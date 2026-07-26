@@ -549,6 +549,10 @@
                 } else if (isUser) {
                     // Check rate limit before unlocking
                     if (isRateLimited()) {
+                        recordUsage('RATE_LIMITED', '');
+                        getDeviceLabel().then(device => {
+                            addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:RATE_LIMITED] Used: ${getTodayUsageCount()}/${getDailyLimit()} | Real: ${new Date().toLocaleString()}`);
+                        });
                         showRateLimitBlock();
                         return;
                     }
@@ -566,6 +570,10 @@
                     themeColorMeta.content = '#1E293B';
                     updateView();
                 } else {
+                    recordUsage('LOGIN_FAILED', '');
+                    getDeviceLabel().then(device => {
+                        addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:LOGIN_FAILED] PIN:**** | Real: ${new Date().toLocaleString()}`);
+                    });
                     pinError.classList.remove('opacity-0');
                     pinInput.value = '';
                     pinInput.focus();
@@ -642,6 +650,10 @@
         document.getElementById('btnAdminBypass').addEventListener('click', () => {
             const val = document.getElementById('adminBypassInput').value;
             if (val === ADMIN_PIN) {
+                recordUsage('ADMIN_BYPASS', 'Rate Limit Block');
+                getDeviceLabel().then(device => {
+                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Unlocked from rate limit | Real: ${new Date().toLocaleString()}`);
+                });
                 hideRateLimitBlock();
                 isAdminMode = true;
                 securityWall.style.display = 'none';
@@ -655,6 +667,10 @@
                 }
                 themeColorMeta.content = '#1E293B';
             } else {
+                recordUsage('ADMIN_BYPASS_FAILED', 'Rate Limit Block');
+                getDeviceLabel().then(device => {
+                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS_FAILED] Wrong code | Real: ${new Date().toLocaleString()}`);
+                });
                 document.getElementById('bypassError').classList.remove('opacity-0');
                 document.getElementById('adminBypassInput').value = '';
                 setTimeout(() => document.getElementById('bypassError').classList.add('opacity-0'), 2500);
@@ -784,6 +800,11 @@
         btnParse.addEventListener('click', () => {
             const text = document.getElementById('inRawSms').value;
             if(!text) return;
+
+            recordUsage('PARSE_SMS', '');
+            getDeviceLabel().then(device => {
+                addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:PARSE_SMS] | Real: ${new Date().toLocaleString()}`);
+            });
 
             const txMatch = text.match(/^([A-Z0-9]{10})/);
             const amtMatch = text.match(/Ksh([\d,\.]+)/i);
