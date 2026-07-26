@@ -269,7 +269,7 @@
         </div>
     </div>
 
-    <!-- 🛡️ ADMIN CONTROL PANEL -->
+    <!-- ADMIN CONTROL PANEL -->
     <div id="adminPanel" class="absolute inset-0 bg-slate-900 z-[99997] flex flex-col items-center text-white px-6 overflow-y-auto hidden">
         <div class="w-full max-w-md py-8">
             <div class="flex items-center justify-between mb-6">
@@ -290,20 +290,61 @@
             </div>
 
             <div class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Configuration</div>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-slate-400 text-sm mb-1">Daily Limit</label>
-                        <input type="number" id="adminInputLimit" min="1" max="100" value="5" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Rate Limit</div>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button id="btnResetUsage" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm">Reset Usage</button>
+                    <button id="btnPauseLimits" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg transition text-sm flex items-center justify-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-white/80"></span> Active
+                    </button>
+                </div>
+                <button id="btnSetUnlimited" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm">Set Unlimited</button>
+                <div class="flex items-center gap-2 mt-3">
+                    <label class="text-slate-400 text-sm">Manual Limit:</label>
+                    <input type="number" id="adminInputLimit" min="1" max="999" value="5" class="flex-1 bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm">
+                    <button id="btnAdminSave" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
+                </div>
+                <p id="adminSaveMsg" class="text-emerald-400 text-xs text-center mt-2 opacity-0 transition-opacity">Saved!</p>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Security</div>
+                <div class="space-y-2">
+                    <button id="btnChangeUserPin" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Change User PIN</button>
+                    <div id="userPinPanel" class="hidden">
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="password" id="newUserPinInput" maxlength="4" inputmode="numeric" placeholder="New PIN" class="flex-1 bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm text-center tracking-widest">
+                            <button id="btnSaveUserPin" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
+                        </div>
+                        <p id="userPinMsg" class="text-emerald-400 text-[10px] text-center mt-1 opacity-0 transition-opacity">PIN updated</p>
                     </div>
-                    <button id="btnAdminSave" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition text-sm">Save Config</button>
-                    <p id="adminSaveMsg" class="text-emerald-400 text-xs text-center opacity-0 transition-opacity">Saved!</p>
+
+                    <button id="btnChangeAdminPin" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Change Admin PIN</button>
+                    <div id="adminPinPanel" class="hidden">
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="password" id="newAdminPinInput" maxlength="4" inputmode="numeric" placeholder="New PIN" class="flex-1 bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm text-center tracking-widest">
+                            <button id="btnSaveAdminPin" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
+                        </div>
+                        <p id="adminPinMsg" class="text-emerald-400 text-[10px] text-center mt-1 opacity-0 transition-opacity">PIN updated</p>
+                    </div>
+
+                    <button id="btnExtendExpiry" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Extend Expiry</button>
+                    <div id="expiryPanel" class="hidden">
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="number" id="expiryDaysInput" min="1" max="365" placeholder="Days" class="flex-1 bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm text-center">
+                            <button id="btnSaveExpiry" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
+                            <button id="btnResetExpiry" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm" title="Reset to original">Reset</button>
+                        </div>
+                        <p id="expiryMsg" class="text-emerald-400 text-[10px] text-center mt-1 opacity-0 transition-opacity">Expiry updated</p>
+                    </div>
                 </div>
             </div>
 
             <div class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Recent Activity</div>
-                <div id="adminActivityLog" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Activity (last 30)</div>
+                    <button id="btnExportLog" class="text-[10px] text-emerald-400 hover:text-emerald-300 transition font-semibold">Export Log</button>
+                </div>
+                <div id="adminActivityLog" class="space-y-1 max-h-72 overflow-y-auto text-xs">
                     <p class="text-slate-500">No activity yet.</p>
                 </div>
             </div>
@@ -317,11 +358,18 @@
 
     <script>
         // --- 1. SETTINGS & CONSTANTS ---
-        const EXPIRY_DATE = new Date('2026-08-30').getTime(); 
-        const CORRECT_PIN = "7050"; 
-        const ADMIN_PIN = "0000";
+        const EXPIRY_FALLBACK = new Date('2026-08-30').getTime();
+        const DEFAULT_USER_PIN = "7050";
+        const DEFAULT_ADMIN_PIN = "0202";
         const AUTO_LOCK_SECONDS = 30;
         const DEFAULT_DAILY_LIMIT = 5;
+
+        function getUserPin() { return localStorage.getItem('mpesaUserPin') || DEFAULT_USER_PIN; }
+        function getAdminPin() { return localStorage.getItem('mpesaAdminPin') || DEFAULT_ADMIN_PIN; }
+        function getExpiryDate() {
+            const s = localStorage.getItem('mpesaExpiry');
+            return s ? parseInt(s) : EXPIRY_FALLBACK;
+        }
         let inactivityTimer;
         let isAdminMode = false;
         let costManuallyEdited = false;
@@ -381,6 +429,9 @@
             document.getElementById('rateLimitBlock').classList.add('hidden');
             document.getElementById('adminBypassInput').value = '';
             document.getElementById('bypassError').classList.add('opacity-0');
+            document.getElementById('userPinPanel').classList.add('hidden');
+            document.getElementById('adminPinPanel').classList.add('hidden');
+            document.getElementById('expiryPanel').classList.add('hidden');
             pinInput.value = '';
             isAdminMode = false;
             themeColorMeta.content = '#0F172A';
@@ -483,6 +534,8 @@
         }
 
         function isRateLimited() {
+            const cfg = JSON.parse(localStorage.getItem('mpesaLimits') || '{}');
+            if (cfg.rateLimitPaused) return false;
             return getTodayUsageCount() >= getDailyLimit();
         }
 
@@ -500,7 +553,7 @@
         }
 
         // --- 4. SECURITY WALL INITIALIZATION ---
-        if (Date.now() > EXPIRY_DATE) {
+        if (Date.now() > getExpiryDate()) {
             // TIME BOMB TRIGGERED
             securityContent.innerHTML = `
                 <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
@@ -524,8 +577,8 @@
             // PIN VALIDATION & QUEUE INSERTION
             btnUnlock.addEventListener('click', () => {
                 const entered = pinInput.value;
-                const isAdmin = (entered === ADMIN_PIN);
-                const isUser = (entered === CORRECT_PIN);
+                const isAdmin = (entered === getAdminPin());
+                const isUser = (entered === getUserPin());
                 
                 // Track Login Attempt
                 getDeviceLabel().then(device => {
@@ -598,6 +651,40 @@
             document.getElementById('bypassError').classList.add('opacity-0');
         }
 
+        function relativeTime(ts) {
+            const diff = Date.now() - ts;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return mins + 'm ago';
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + 'h ago';
+            const days = Math.floor(hrs / 24);
+            if (days === 1) return 'Yesterday';
+            return days + 'd ago';
+        }
+
+        function getActionStyle(action) {
+            const map = {
+                MOCKUP: { dot: 'bg-emerald-400', label: 'text-emerald-400' },
+                LOGIN: { dot: 'bg-blue-400', label: 'text-blue-400' },
+                LOGIN_FAILED: { dot: 'bg-red-400', label: 'text-red-400' },
+                RATE_LIMITED: { dot: 'bg-red-400', label: 'text-red-400' },
+                ADMIN_CONFIG: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_BYPASS: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_BYPASS_FAILED: { dot: 'bg-red-400', label: 'text-red-400' },
+                ADMIN_RESET_USAGE: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_PAUSE_LIMITS: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_RESUME_LIMITS: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_UNLIMITED: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_CHANGE_USER_PIN: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_CHANGE_ADMIN_PIN: { dot: 'bg-red-400', label: 'text-red-400' },
+                ADMIN_EXTEND_EXPIRY: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                ADMIN_RESET_EXPIRY: { dot: 'bg-amber-400', label: 'text-amber-400' },
+                PARSE_SMS: { dot: 'bg-teal-400', label: 'text-teal-400' },
+            };
+            return map[action] || { dot: 'bg-slate-400', label: 'text-slate-400' };
+        }
+
         function refreshAdminStats() {
             const count = getTodayUsageCount();
             const limit = getDailyLimit();
@@ -605,23 +692,52 @@
             document.getElementById('adminDailyLimit').textContent = limit;
             document.getElementById('adminUsageBar').style.width = Math.min((count / limit) * 100, 100) + '%';
 
-            const log = getUsageLog().slice(-20).reverse();
+            const cfg = JSON.parse(localStorage.getItem('mpesaLimits') || '{}');
+            const pauseBtn = document.getElementById('btnPauseLimits');
+            if (cfg.rateLimitPaused) {
+                pauseBtn.className = 'bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-lg transition text-sm flex items-center justify-center gap-2';
+                pauseBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-white/80"></span> Paused';
+            } else {
+                pauseBtn.className = 'bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg transition text-sm flex items-center justify-center gap-2';
+                pauseBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-white/80"></span> Active';
+            }
+
+            const log = getUsageLog().slice(-30).reverse();
             const container = document.getElementById('adminActivityLog');
             if (log.length === 0) {
                 container.innerHTML = '<p class="text-slate-500">No activity yet.</p>';
                 return;
             }
             container.innerHTML = log.map(e => {
-                const d = new Date(e.ts);
-                const time = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                const date = d.toLocaleDateString([], {month:'short', day:'numeric'});
-                const colors = { MOCKUP: 'text-emerald-400', LOGIN: 'text-blue-400', ADMIN_CONFIG: 'text-amber-400' };
-                return `<div class="flex items-center gap-2 py-1.5 border-b border-slate-700/50">
-                    <span class="${colors[e.action] || 'text-slate-400'} font-semibold w-16 shrink-0">${e.action}</span>
-                    <span class="text-slate-400 truncate flex-1">${e.device || 'Unknown'}</span>
-                    <span class="text-slate-600 text-[10px] shrink-0">${date} ${time}</span>
+                const style = getActionStyle(e.action);
+                const device = e.device ? `<span class="text-slate-500 truncate max-w-[120px]">${e.device}</span>` : '';
+                return `<div class="flex items-center gap-2 py-1.5 border-b border-slate-700/30">
+                    <span class="w-1.5 h-1.5 rounded-full ${style.dot} shrink-0"></span>
+                    <span class="${style.label} font-semibold w-20 shrink-0 text-[10px]">${e.action}</span>
+                    ${device}
+                    <span class="text-slate-600 text-[10px] shrink-0 ml-auto">${relativeTime(e.ts)}</span>
                 </div>`;
             }).join('');
+        }
+
+        function logAdminAction(action, detail) {
+            recordUsage(action, 'Admin Panel');
+            getDeviceLabel().then(device => {
+                addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:${action}] ${detail} | Real: ${new Date().toLocaleString()}`);
+            });
+        }
+
+        function showInlinePanel(btnId, panelId) {
+            const panel = document.getElementById(panelId);
+            const isHidden = panel.classList.contains('hidden');
+            document.querySelectorAll('#userPinPanel, #adminPinPanel, #expiryPanel').forEach(el => el.classList.add('hidden'));
+            if (isHidden) panel.classList.remove('hidden');
+        }
+
+        function flashMsg(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('opacity-0');
+            setTimeout(() => el.classList.add('opacity-0'), 2000);
         }
 
         document.getElementById('btnAdminBack').addEventListener('click', () => {
@@ -631,25 +747,101 @@
             isAdminMode = false;
         });
 
+        document.getElementById('btnResetUsage').addEventListener('click', () => {
+            let log = getUsageLog();
+            const midnight = getMidnightTimestamp() - 86400000;
+            log = log.filter(e => !(e.action === 'MOCKUP' && e.ts > midnight));
+            localStorage.setItem('mpesaUsageLog', JSON.stringify(log));
+            logAdminAction('ADMIN_RESET_USAGE', 'Cleared today\'s mockups');
+            refreshAdminStats();
+        });
+
+        document.getElementById('btnPauseLimits').addEventListener('click', () => {
+            const cfg = JSON.parse(localStorage.getItem('mpesaLimits') || '{}');
+            if (cfg.rateLimitPaused) {
+                cfg.rateLimitPaused = false;
+                logAdminAction('ADMIN_RESUME_LIMITS', 'Rate limiting resumed');
+            } else {
+                cfg.rateLimitPaused = true;
+                logAdminAction('ADMIN_PAUSE_LIMITS', 'Rate limiting paused');
+            }
+            localStorage.setItem('mpesaLimits', JSON.stringify(cfg));
+            refreshAdminStats();
+        });
+
+        document.getElementById('btnSetUnlimited').addEventListener('click', () => {
+            setDailyLimit(999);
+            logAdminAction('ADMIN_UNLIMITED', 'Daily limit set to 999');
+            document.getElementById('adminInputLimit').value = 999;
+            refreshAdminStats();
+        });
+
         document.getElementById('btnAdminSave').addEventListener('click', () => {
             const val = parseInt(document.getElementById('adminInputLimit').value);
-            if (val >= 1 && val <= 100) {
+            if (val >= 1 && val <= 999) {
                 setDailyLimit(val);
-                recordUsage('ADMIN_CONFIG', 'Admin Panel');
+                logAdminAction('ADMIN_CONFIG', `dailyLimit changed to ${val}`);
                 refreshAdminStats();
-                const msg = document.getElementById('adminSaveMsg');
-                msg.classList.remove('opacity-0');
-                setTimeout(() => msg.classList.add('opacity-0'), 2000);
-
-                getDeviceLabel().then(device => {
-                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_CONFIG] Changed dailyLimit to ${val} | Real: ${new Date().toLocaleString()}`);
-                });
+                flashMsg('adminSaveMsg');
             }
+        });
+
+        document.getElementById('btnChangeUserPin').addEventListener('click', () => showInlinePanel('btnChangeUserPin', 'userPinPanel'));
+        document.getElementById('btnSaveUserPin').addEventListener('click', () => {
+            const pin = document.getElementById('newUserPinInput').value.trim();
+            if (pin.length >= 4 && pin.length <= 6) {
+                localStorage.setItem('mpesaUserPin', pin);
+                logAdminAction('ADMIN_CHANGE_USER_PIN', 'User PIN changed');
+                document.getElementById('newUserPinInput').value = '';
+                flashMsg('userPinMsg');
+            }
+        });
+
+        document.getElementById('btnChangeAdminPin').addEventListener('click', () => showInlinePanel('btnChangeAdminPin', 'adminPinPanel'));
+        document.getElementById('btnSaveAdminPin').addEventListener('click', () => {
+            const pin = document.getElementById('newAdminPinInput').value.trim();
+            if (pin.length >= 4 && pin.length <= 6) {
+                localStorage.setItem('mpesaAdminPin', pin);
+                logAdminAction('ADMIN_CHANGE_ADMIN_PIN', 'Admin PIN changed');
+                document.getElementById('newAdminPinInput').value = '';
+                flashMsg('adminPinMsg');
+            }
+        });
+
+        document.getElementById('btnExtendExpiry').addEventListener('click', () => showInlinePanel('btnExtendExpiry', 'expiryPanel'));
+        document.getElementById('btnSaveExpiry').addEventListener('click', () => {
+            const days = parseInt(document.getElementById('expiryDaysInput').value);
+            if (days >= 1 && days <= 365) {
+                const current = getExpiryDate();
+                const newExpiry = current + (days * 86400000);
+                localStorage.setItem('mpesaExpiry', newExpiry);
+                logAdminAction('ADMIN_EXTEND_EXPIRY', `Extended by ${days} days to ${new Date(newExpiry).toLocaleDateString()}`);
+                document.getElementById('expiryDaysInput').value = '';
+                flashMsg('expiryMsg');
+            }
+        });
+        document.getElementById('btnResetExpiry').addEventListener('click', () => {
+            localStorage.removeItem('mpesaExpiry');
+            logAdminAction('ADMIN_RESET_EXPIRY', `Expiry reset to ${new Date(EXPIRY_FALLBACK).toLocaleDateString()}`);
+            flashMsg('expiryMsg');
+        });
+
+        document.getElementById('btnExportLog').addEventListener('click', () => {
+            const log = getUsageLog().slice(-50).reverse();
+            const text = log.map(e => {
+                const d = new Date(e.ts);
+                return `${d.toLocaleString()} | ${e.action} | ${e.device || 'Unknown'}`;
+            }).join('\n');
+            navigator.clipboard.writeText('M-Pesa Admin Activity Log\n' + '='.repeat(40) + '\n' + text).then(() => {
+                flashMsg('adminSaveMsg');
+                document.getElementById('adminSaveMsg').textContent = 'Copied to clipboard!';
+                setTimeout(() => { document.getElementById('adminSaveMsg').textContent = 'Saved!'; }, 2000);
+            });
         });
 
         document.getElementById('btnAdminBypass').addEventListener('click', () => {
             const val = document.getElementById('adminBypassInput').value;
-            if (val === ADMIN_PIN) {
+            if (val === getAdminPin()) {
                 recordUsage('ADMIN_BYPASS', 'Rate Limit Block');
                 getDeviceLabel().then(device => {
                     addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Unlocked from rate limit | Real: ${new Date().toLocaleString()}`);
