@@ -170,7 +170,6 @@
                         </div>
                         <div class="text-[34px] font-extrabold text-gray-900 mb-1">Ksh <span class="outAmount">50.00</span></div>
                         <div class="text-[12px] text-gray-500 mb-3">Transaction cost:<span class="font-bold text-gray-700">Ksh <span class="outCost">0.00</span></span></div>
-                        <div class="text-[12px] text-gray-500 mb-1">M-Pesa balance:<span class="font-bold text-gray-700">Ksh <span class="outBalance">8,500.00</span></span></div>
                         
                         <div class="inline-flex items-center gap-1.5 bg-[#E6F4EA] text-[#059669] px-4 py-1.5 rounded-full text-[12px] font-bold border border-[#A3D9B1] mx-auto tracking-wide">
                             <span class="uppercase">ID: <span class="outTxId">UGID1BKNCV</span></span>
@@ -564,7 +563,8 @@
                         controlPanel.classList.remove('hidden');
                         controlPanel.classList.add('flex');
                     }
-                    themeColorMeta.content = '#1E293B'; 
+                    themeColorMeta.content = '#1E293B';
+                    updateView();
                 } else {
                     pinError.classList.remove('opacity-0');
                     pinInput.value = '';
@@ -774,6 +774,8 @@
                 document.getElementById('viewDark').classList.remove('hidden');
                 appBody.style.backgroundColor = window.innerWidth < 768 ? '#000000' : '';
                 if(!mockupCanvas.classList.contains('hidden')) themeColorMeta.content = '#000000';
+                const dateStr = document.getElementById('inDate').value;
+                generateHistory(dateStr);
             }
             renderTypeSpecifics();
             updateDOM();
