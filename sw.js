@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mockup-pwa-v11';
+const CACHE_NAME = 'mockup-pwa-v12';
 
 self.addEventListener('install', event => {
   event.waitUntil(

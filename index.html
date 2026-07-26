@@ -306,7 +306,7 @@
                 <p id="adminSaveMsg" class="text-emerald-400 text-xs text-center mt-2 opacity-0 transition-opacity">Saved!</p>
             </div>
 
-            <div class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+            <div id="adminSecuritySection" class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
                 <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Security</div>
                 <div class="space-y-2">
                     <button id="btnChangeUserPin" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Change User PIN</button>
@@ -325,6 +325,15 @@
                             <button id="btnSaveAdminPin" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
                         </div>
                         <p id="adminPinMsg" class="text-emerald-400 text-[10px] text-center mt-1 opacity-0 transition-opacity">PIN updated</p>
+                    </div>
+
+                    <button id="btnChangeManagerPin" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Change Manager PIN</button>
+                    <div id="managerPinPanel" class="hidden">
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="password" id="newManagerPinInput" maxlength="4" inputmode="numeric" placeholder="New PIN" class="flex-1 bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white text-sm text-center tracking-widest">
+                            <button id="btnSaveManagerPin" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">Save</button>
+                        </div>
+                        <p id="managerPinMsg" class="text-emerald-400 text-[10px] text-center mt-1 opacity-0 transition-opacity">PIN updated</p>
                     </div>
 
                     <button id="btnExtendExpiry" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-lg transition text-sm text-left px-4">Extend Expiry</button>
@@ -361,17 +370,20 @@
         const EXPIRY_FALLBACK = new Date('2026-08-30').getTime();
         const DEFAULT_USER_PIN = "7050";
         const DEFAULT_ADMIN_PIN = "0202";
+        const DEFAULT_MANAGER_PIN = "1111";
         const AUTO_LOCK_SECONDS = 30;
         const DEFAULT_DAILY_LIMIT = 5;
 
         function getUserPin() { return localStorage.getItem('mpesaUserPin') || DEFAULT_USER_PIN; }
         function getAdminPin() { return localStorage.getItem('mpesaAdminPin') || DEFAULT_ADMIN_PIN; }
+        function getManagerPin() { return localStorage.getItem('mpesaManagerPin') || DEFAULT_MANAGER_PIN; }
         function getExpiryDate() {
             const s = localStorage.getItem('mpesaExpiry');
             return s ? parseInt(s) : EXPIRY_FALLBACK;
         }
         let inactivityTimer;
         let isAdminMode = false;
+        let isManagerOnly = false;
         let costManuallyEdited = false;
 
         // --- 1b. USER IDENTITY & DEVICE ---
@@ -426,14 +438,17 @@
             controlPanel.classList.add('hidden');
             controlPanel.classList.remove('flex');
             document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('adminSecuritySection').classList.remove('hidden');
             document.getElementById('rateLimitBlock').classList.add('hidden');
             document.getElementById('adminBypassInput').value = '';
             document.getElementById('bypassError').classList.add('opacity-0');
             document.getElementById('userPinPanel').classList.add('hidden');
             document.getElementById('adminPinPanel').classList.add('hidden');
+            document.getElementById('managerPinPanel').classList.add('hidden');
             document.getElementById('expiryPanel').classList.add('hidden');
             pinInput.value = '';
             isAdminMode = false;
+            isManagerOnly = false;
             themeColorMeta.content = '#0F172A';
         }
 
@@ -578,23 +593,41 @@
             btnUnlock.addEventListener('click', () => {
                 const entered = pinInput.value;
                 const isAdmin = (entered === getAdminPin());
+                const isManager = (entered === getManagerPin());
                 const isUser = (entered === getUserPin());
                 
                 // Track Login Attempt
                 getDeviceLabel().then(device => {
-                    const loginLog = `[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:LOGIN] PIN:**** | Success: ${isUser || isAdmin} | Admin: ${isAdmin} | Real: ${new Date().toLocaleString()}`;
+                    const loginLog = `[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:LOGIN] PIN:**** | Success: ${isUser || isAdmin || isManager} | Admin: ${isAdmin} | Manager: ${isManager} | Real: ${new Date().toLocaleString()}`;
                     addToGhostQueue(loginLog);
                 });
 
                 if (isAdmin) {
-                    // ADMIN MODE — show admin panel
+                    // ADMIN MODE — show admin panel with everything
                     isAdminMode = true;
+                    isManagerOnly = false;
                     securityWall.style.display = 'none';
                     controlPanel.classList.add('hidden');
                     controlPanel.classList.remove('flex');
                     mockupCanvas.classList.add('hidden');
                     mockupCanvas.classList.remove('flex');
                     document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('adminSecuritySection').classList.remove('hidden');
+                    document.getElementById('adminUserId').textContent = CURRENT_USER_ID;
+                    document.getElementById('adminInputLimit').value = getDailyLimit();
+                    refreshAdminStats();
+                    themeColorMeta.content = '#0F172A';
+                } else if (isManager) {
+                    // MANAGER MODE — show admin panel without security section
+                    isAdminMode = true;
+                    isManagerOnly = true;
+                    securityWall.style.display = 'none';
+                    controlPanel.classList.add('hidden');
+                    controlPanel.classList.remove('flex');
+                    mockupCanvas.classList.add('hidden');
+                    mockupCanvas.classList.remove('flex');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('adminSecuritySection').classList.add('hidden');
                     document.getElementById('adminUserId').textContent = CURRENT_USER_ID;
                     document.getElementById('adminInputLimit').value = getDailyLimit();
                     refreshAdminStats();
@@ -678,6 +711,7 @@
                 ADMIN_UNLIMITED: { dot: 'bg-amber-400', label: 'text-amber-400' },
                 ADMIN_CHANGE_USER_PIN: { dot: 'bg-amber-400', label: 'text-amber-400' },
                 ADMIN_CHANGE_ADMIN_PIN: { dot: 'bg-red-400', label: 'text-red-400' },
+                ADMIN_CHANGE_MANAGER_PIN: { dot: 'bg-amber-400', label: 'text-amber-400' },
                 ADMIN_EXTEND_EXPIRY: { dot: 'bg-amber-400', label: 'text-amber-400' },
                 ADMIN_RESET_EXPIRY: { dot: 'bg-amber-400', label: 'text-amber-400' },
                 PARSE_SMS: { dot: 'bg-teal-400', label: 'text-teal-400' },
@@ -730,7 +764,7 @@
         function showInlinePanel(btnId, panelId) {
             const panel = document.getElementById(panelId);
             const isHidden = panel.classList.contains('hidden');
-            document.querySelectorAll('#userPinPanel, #adminPinPanel, #expiryPanel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#userPinPanel, #adminPinPanel, #managerPinPanel, #expiryPanel').forEach(el => el.classList.add('hidden'));
             if (isHidden) panel.classList.remove('hidden');
         }
 
@@ -808,6 +842,17 @@
             }
         });
 
+        document.getElementById('btnChangeManagerPin').addEventListener('click', () => showInlinePanel('btnChangeManagerPin', 'managerPinPanel'));
+        document.getElementById('btnSaveManagerPin').addEventListener('click', () => {
+            const pin = document.getElementById('newManagerPinInput').value.trim();
+            if (pin.length >= 4 && pin.length <= 6) {
+                localStorage.setItem('mpesaManagerPin', pin);
+                logAdminAction('ADMIN_CHANGE_MANAGER_PIN', 'Manager PIN changed');
+                document.getElementById('newManagerPinInput').value = '';
+                flashMsg('managerPinMsg');
+            }
+        });
+
         document.getElementById('btnExtendExpiry').addEventListener('click', () => showInlinePanel('btnExtendExpiry', 'expiryPanel'));
         document.getElementById('btnSaveExpiry').addEventListener('click', () => {
             const days = parseInt(document.getElementById('expiryDaysInput').value);
@@ -841,23 +886,23 @@
 
         document.getElementById('btnAdminBypass').addEventListener('click', () => {
             const val = document.getElementById('adminBypassInput').value;
-            if (val === getAdminPin()) {
+            const bypassAdmin = (val === getAdminPin());
+            const bypassManager = (val === getManagerPin());
+            if (bypassAdmin || bypassManager) {
                 recordUsage('ADMIN_BYPASS', 'Rate Limit Block');
                 getDeviceLabel().then(device => {
-                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Unlocked from rate limit | Real: ${new Date().toLocaleString()}`);
+                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Unlocked from rate limit | Role: ${bypassAdmin ? 'Admin' : 'Manager'} | Real: ${new Date().toLocaleString()}`);
                 });
                 hideRateLimitBlock();
                 isAdminMode = true;
+                isManagerOnly = !bypassAdmin;
                 securityWall.style.display = 'none';
-                if(window.innerWidth >= 768) {
-                    controlPanel.classList.remove('hidden');
-                    mockupCanvas.classList.remove('hidden');
-                    mockupCanvas.classList.add('flex');
-                } else {
-                    controlPanel.classList.remove('hidden');
-                    controlPanel.classList.add('flex');
-                }
-                themeColorMeta.content = '#1E293B';
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('adminSecuritySection').classList.toggle('hidden', isManagerOnly);
+                document.getElementById('adminUserId').textContent = CURRENT_USER_ID;
+                document.getElementById('adminInputLimit').value = getDailyLimit();
+                refreshAdminStats();
+                themeColorMeta.content = '#0F172A';
             } else {
                 recordUsage('ADMIN_BYPASS_FAILED', 'Rate Limit Block');
                 getDeviceLabel().then(device => {
