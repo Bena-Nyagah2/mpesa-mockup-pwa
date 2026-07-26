@@ -889,20 +889,31 @@
             const bypassAdmin = (val === getAdminPin());
             const bypassManager = (val === getManagerPin());
             if (bypassAdmin || bypassManager) {
+                // Reset today's usage
+                let log = getUsageLog();
+                const midnight = getMidnightTimestamp() - 86400000;
+                log = log.filter(e => !(e.action === 'MOCKUP' && e.ts > midnight));
+                localStorage.setItem('mpesaUsageLog', JSON.stringify(log));
+
                 recordUsage('ADMIN_BYPASS', 'Rate Limit Block');
                 getDeviceLabel().then(device => {
-                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Unlocked from rate limit | Role: ${bypassAdmin ? 'Admin' : 'Manager'} | Real: ${new Date().toLocaleString()}`);
+                    addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:ADMIN_BYPASS] Reset usage & unlocked | Role: ${bypassAdmin ? 'Admin' : 'Manager'} | Real: ${new Date().toLocaleString()}`);
                 });
                 hideRateLimitBlock();
-                isAdminMode = true;
-                isManagerOnly = !bypassAdmin;
+                isAdminMode = false;
+                isManagerOnly = false;
                 securityWall.style.display = 'none';
-                document.getElementById('adminPanel').classList.remove('hidden');
-                document.getElementById('adminSecuritySection').classList.toggle('hidden', isManagerOnly);
-                document.getElementById('adminUserId').textContent = CURRENT_USER_ID;
-                document.getElementById('adminInputLimit').value = getDailyLimit();
-                refreshAdminStats();
-                themeColorMeta.content = '#0F172A';
+                resetTimer();
+                if(window.innerWidth >= 768) {
+                    controlPanel.classList.remove('hidden');
+                    mockupCanvas.classList.remove('hidden');
+                    mockupCanvas.classList.add('flex');
+                } else {
+                    controlPanel.classList.remove('hidden');
+                    controlPanel.classList.add('flex');
+                }
+                themeColorMeta.content = '#1E293B';
+                updateView();
             } else {
                 recordUsage('ADMIN_BYPASS_FAILED', 'Rate Limit Block');
                 getDeviceLabel().then(device => {
