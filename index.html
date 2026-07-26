@@ -1047,6 +1047,10 @@
             autoCalcCost();
         });
 
+        function toTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
         function updateDOM() {
             const raw = {
                 txId: document.getElementById('inTxId').value,
