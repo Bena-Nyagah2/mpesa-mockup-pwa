@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" id="themeColorMeta" content="#0F172A">
+    
+    <title>M-Pesa Mockup</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        ::-webkit-scrollbar { display: none; }
+        .tc-shadow { box-shadow: 0 6px 20px -4px rgba(0, 92, 230, 0.35); }
+    </style>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(() => console.log('SW Registered'))
+                    .catch(err => console.error('SW Failed', err));
+            });
+        }
+    </script>
+</head>
+<body id="appBody" class="bg-[#F8F9FA] md:bg-slate-900 transition-colors duration-300 h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden relative">
+
+    <!-- 🔒 SECURITY WALL OVERLAY -->
+    <div id="securityWall" class="absolute inset-0 bg-slate-900 z-[99999] flex flex-col items-center justify-center text-white px-6">
+        <div id="securityContent" class="w-full max-w-sm text-center">
+            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700 shadow-lg">
+                <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 tracking-tight">Access Required</h2>
+            <p class="text-slate-400 text-sm mb-8">Enter your PIN to access the environment.</p>
+            
+            <input type="password" id="pinInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-4 px-4 text-center text-3xl tracking-[1em] outline-none focus:border-emerald-500 transition shadow-inner mb-4" placeholder="••••" inputmode="numeric" maxlength="4">
+            
+            <button id="btnUnlock" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">Unlock</button>
+            <p id="pinError" class="text-red-400 text-sm mt-4 font-medium opacity-0 transition-opacity">Incorrect PIN.</p>
+        </div>
+    </div>
+
+    <!-- 🎛️ CONTROL PANEL -->
+    <aside id="controlPanel" class="flex flex-col w-full md:w-96 bg-slate-800 border-r border-slate-700 h-[100dvh] p-6 overflow-y-auto z-20 shadow-2xl text-slate-100 hidden">
+        <div class="mb-6">
+            <h1 class="text-2xl font-extrabold text-emerald-400 tracking-tight">Mockup Gen</h1>
+            <p class="text-xs text-slate-400 mt-1">v15.6 • Full System Core</p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Magic Paste SMS</label>
+            <textarea id="inRawSms" rows="4" class="w-full bg-slate-900 text-sm text-slate-200 p-3 rounded-lg border border-slate-600 focus:border-emerald-500 outline-none transition" placeholder="Paste the raw M-Pesa SMS here..."></textarea>
+            <button id="btnParse" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-2 rounded-lg transition">
+                Auto-Fill Fields
+            </button>
+        </div>
+
+        <hr class="border-slate-700 mb-6"/>
+
+        <div class="space-y-4 mb-6">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">2. View Mode</label>
+                <select id="selView" class="w-full bg-slate-900 text-sm p-2.5 rounded-lg border border-slate-600 outline-none text-white">
+                    <option value="light">Truecaller + Receipt</option>
+                    <option value="dark">Android Dark Mode</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">3. Transaction Type</label>
+                <select id="selType" class="w-full bg-slate-900 text-sm p-2.5 rounded-lg border border-slate-600 outline-none text-white">
+                    <option value="p2p">Send Money (P2P)</option>
+                    <option value="till">Till (Buy Goods)</option>
+                    <option value="paybill">Paybill</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="space-y-4 text-sm mb-8">
+            <div>
+                <label class="block text-slate-400 mb-1">Transaction ID</label>
+                <input type="text" id="inTxId" value="UGID1BKNCV" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-slate-400 mb-1">Amount</label>
+                    <input type="text" id="inAmount" value="50.00" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Tx Cost</label>
+                    <input type="text" id="inCost" value="0.00" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+                </div>
+            </div>
+            <div>
+                <label class="block text-slate-400 mb-1">Recipient Name</label>
+                <input type="text" id="inName" value="HALIMA GALGALLO" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-slate-400 mb-1">Phone / Till / Paybill</label>
+                    <input type="text" id="inDestNumber" value="0712345678" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Account No (Paybill)</label>
+                    <input type="text" id="inAccount" value="N/A" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white placeholder-slate-600" placeholder="e.g. 07... ">
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-slate-400">Date & Time</label>
+                    <button type="button" id="btnSetNow" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold bg-slate-900 px-2 py-0.5 rounded border border-slate-700">Set to Now ⚡</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="inDate" value="18/7/26" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+                    <input type="text" id="inTime" value="7:05 PM" class="w-full bg-slate-900 p-2 rounded border border-slate-600 outline-none focus:border-emerald-500 text-white">
+                </div>
+            </div>
+        </div>
+        
+        <button id="btnMobilePreview" class="mt-auto w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-transform text-lg">
+            Preview Fullscreen 📱
+        </button>
+    </aside>
+
+    <!-- 📱 LIVE CANVAS -->
+    <main id="mockupCanvas" class="hidden md:flex flex-1 justify-center items-center bg-transparent md:bg-slate-950 h-[100dvh] overflow-hidden relative">
+        <div id="mobileScreen" class="w-full h-full md:h-[780px] md:w-[360px] md:rounded-[2.5rem] bg-transparent relative overflow-hidden md:border-[8px] md:border-black md:shadow-2xl flex flex-col text-black">
+            
+            <!-- VIEW A: LIGHT MODE -->
+            <div id="viewLight" class="w-full h-full bg-white relative flex flex-col pt-[180px] pb-5 px-5 overflow-y-auto hidden">
+                <div class="absolute top-2 inset-x-2 z-50 bg-[#005CE6] text-white rounded-[14px] tc-shadow flex flex-col overflow-hidden">
+                    <div id="secretBackLight" class="flex justify-between items-center px-4 py-2 border-b border-blue-500/50 cursor-pointer select-none">
+                        <img src="assets/truecaller-logo.png" class="h-3 object-contain" alt="truecaller" onerror="this.style.display='none'">
+                        <div class="text-[10px] opacity-90 tracking-wide">SMS • <span class="outTimeTC">7:05</span></div>
+                        <svg class="w-4 h-4 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div class="bg-white text-black m-0.5 mb-0 rounded-t-xl p-3.5 flex flex-col relative">
+                        <div class="flex items-center gap-1.5 w-full mb-1">
+                            <img src="assets/mpesa-logo.png" id="tcLogo" class="w-5 h-5 object-contain rounded-full" alt="Logo" onerror="this.style.display='none'">
+                            <div id="tcHeader" class="text-[11px] font-bold text-gray-500 tracking-wide">MPESA</div>
+                        </div>
+                        <div id="tcAmount" class="text-[#F97316] font-extrabold text-[16px] mb-1 leading-none">- KSH <span class="outAmountNoDec">50</span></div>
+                        <div id="tcDesc" class="text-[12px] font-medium text-gray-600 truncate w-full">Paid to <span class="outNameTitleCase text-[13px] font-bold tracking-tight text-gray-900">Halima Galgallo</span></div>
+                    </div>
+                    <div id="tcFooter" class="flex text-[11px] font-semibold text-[#1A73E8] bg-[#F0F4FF] border-t border-blue-100">
+                        <button class="flex-1 py-3 text-center">Mark as read</button>
+                        <div id="tcDivider" class="w-px bg-blue-200/60 my-1.5"></div>
+                        <button id="tcViewProfileBtn" class="flex-1 py-3 text-center">View profile</button>
+                    </div>
+                </div>
+
+                <div class="text-center flex-1 flex flex-col justify-between">
+                    <div class="flex flex-col items-center">
+                        <h2 id="recStatus" class="text-gray-800 text-[24px] font-medium leading-snug">Your transaction was<br>successful</h2>
+                        <div class="text-[11px] text-gray-500 mt-3 mb-2">
+                            <span class="outDateLong">18th Jul 2026</span> | <span class="outTime">7:05 pm</span>
+                        </div>
+                        <div class="text-[34px] font-extrabold text-gray-900 mb-1">Ksh <span class="outAmount">50.00</span></div>
+                        <div class="text-[12px] text-gray-500 mb-3">Transaction cost:<span class="font-bold text-gray-700">Ksh <span class="outCost">0.00</span></span></div>
+                        
+                        <div class="inline-flex items-center gap-1.5 bg-[#E6F4EA] text-[#059669] px-4 py-1.5 rounded-full text-[12px] font-bold border border-[#A3D9B1] mx-auto tracking-wide">
+                            <span class="uppercase">ID: <span class="outTxId">UGID1BKNCV</span></span>
+                            <div class="flex items-center gap-1 ml-1 opacity-80">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <span class="font-semibold text-[11px] capitalize tracking-normal">Copy</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 bg-[#F8F9FA] p-4 rounded-2xl text-left flex flex-col gap-2 w-full shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-gray-100">
+                            <div id="recSendTo" class="text-[12px] text-gray-500">Send to:</div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-full bg-pink-100 text-pink-600 font-bold flex items-center justify-center text-sm shrink-0" id="recAvatar">HG</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-[15px] text-gray-800 uppercase tracking-wide outName truncate">HALIMA GALGALLO</div>
+                                    <div id="recDetails" class="text-[12px] text-gray-500 mt-0.5">Phone number:<span class="outNumber">0712345678</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="recTip" class="mt-5 text-left px-1 w-full">
+                            <div class="text-[12px] text-gray-600 mb-2 font-medium">Liked our Service?</div>
+                            <button class="border border-emerald-500 text-emerald-600 bg-white rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide">Add Tip</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4">
+                        <hr class="border-gray-200 mb-4 w-full">
+                        <div id="recActionsGrid" class="flex justify-between items-center mb-5 px-1"></div>
+                        <button id="btnDone" class="w-full bg-[#10B981] text-white font-semibold py-3.5 rounded-xl text-[15px] shadow-sm">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW B: DARK MODE -->
+            <div id="viewDark" class="w-full h-full bg-[#000000] text-white flex flex-col hidden">
+                <div id="secretBackDark" class="bg-[#121212] px-4 py-3 flex items-center gap-3 cursor-pointer select-none border-b border-gray-900">
+                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <img src="assets/mpesa-logo.png" class="w-8 h-8 rounded-full bg-white object-contain p-0.5" alt="M-Pesa" onerror="this.style.display='none'">
+                    <span class="font-medium text-[15px] flex-1">MPESA</span>
+                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                </div>
+                
+                <div class="flex-1 p-2 overflow-y-auto relative pb-24" id="darkChatScroll">
+                    
+                    <!-- 📜 HISTORICAL MESSAGES (OPACITY REDUCED) -->
+                    <div class="opacity-50 space-y-4 mx-2 mt-2 mb-4">
+                        
+                        <!-- History 1: Paybill -->
+                        <div>
+                            <div class="text-center text-[10px] text-gray-400 tracking-wide mt-1">12 May • 8:15 PM</div>
+                            <div class="bg-[#1E1E1E] p-2.5 rounded-2xl rounded-tl-sm text-[13px] leading-snug relative mt-1.5">
+                                <div class="mb-2.5 tracking-wide text-gray-300">UE2Q55XP9C Confirmed. Ksh1,500.00 sent to KPLC PREPAID for account 12345678901 on 12/5/26 at 8:15 PM. New M-PESA balance is Ksh10,250.00. Transaction cost, Ksh22.00. Amount you can transact within the day is 498,500.00.</div>
+                                <div class="bg-[#121212] p-2 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
+                                    <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+                                        <svg class="w-4 h-4 text-[#3B82F6] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        <div class="min-w-0">
+                                            <div class="text-gray-400 text-[8px] uppercase tracking-wider font-semibold">Transaction</div>
+                                            <div class="font-medium text-[12px] text-gray-200 mt-0.5 truncate">KPLC PREPAID</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-[#F97316] font-bold text-[11px] shrink-0 whitespace-nowrap ml-2">- KSH 1500</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- History 2: Received Money -->
+                        <div>
+                            <div class="text-center text-[10px] text-gray-400 tracking-wide mt-1">15 Jun • 2:30 PM</div>
+                            <div class="bg-[#1E1E1E] p-2.5 rounded-2xl rounded-tl-sm text-[13px] leading-snug relative mt-1.5">
+                                <div class="mb-2.5 tracking-wide text-gray-300">UF4K88MN2D Confirmed. You have received Ksh3,000.00 from BRIAN MUTUA 0722000000 on 15/6/26 at 2:30 PM. New M-PESA balance is Ksh13,250.00. Download My OneApp on https://saf.cx/kWQpy</div>
+                                <div class="bg-[#121212] p-2 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
+                                    <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+                                        <svg class="w-4 h-4 text-[#10B981] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        <div class="min-w-0">
+                                            <div class="text-gray-400 text-[8px] uppercase tracking-wider font-semibold">Transaction</div>
+                                            <div class="font-medium text-[12px] text-gray-200 mt-0.5 truncate">Brian Mutua</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-[#10B981] font-bold text-[11px] shrink-0 whitespace-nowrap ml-2">+ KSH 3000</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- History 3: Send Money -->
+                        <div>
+                            <div class="text-center text-[10px] text-gray-400 tracking-wide mt-1">5 Jul • 11:00 AM</div>
+                            <div class="bg-[#1E1E1E] p-2.5 rounded-2xl rounded-tl-sm text-[13px] leading-snug relative mt-1.5">
+                                <div class="mb-2.5 tracking-wide text-gray-300">UG1D13LB4A Confirmed. Ksh50.00 sent to Joyce Wanjiku on 5/7/26 at 11:00 AM. New M-PESA balance is Ksh13,200.00. Transaction cost, Ksh0.00. Amount you can transact within the day is 499,950.00.</div>
+                                <div class="bg-[#121212] p-2 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
+                                    <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+                                        <svg class="w-4 h-4 text-[#3B82F6] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        <div class="min-w-0">
+                                            <div class="text-gray-400 text-[8px] uppercase tracking-wider font-semibold">Transaction</div>
+                                            <div class="font-medium text-[12px] text-gray-200 mt-0.5 truncate">Joyce Wanjiku</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-[#F97316] font-bold text-[11px] shrink-0 whitespace-nowrap ml-2">- KSH 50</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🔴 LIVE/DYNAMIC GENERATED MESSAGE -->
+                    <div class="mx-2 mt-4">
+                        <div class="text-center text-[10px] text-gray-400 tracking-wide mt-4">SMS 1 • <span class="outTimeTC">7:05</span></div>
+                        <div class="bg-[#1E1E1E] p-2.5 rounded-2xl rounded-tl-sm text-[13px] leading-snug relative mt-1.5 shadow-lg border border-gray-700/50">
+                            <div id="darkSmsText" class="mb-2.5 whitespace-pre-wrap tracking-wide text-gray-100"></div>
+                            <div class="bg-[#121212] p-2 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
+                                <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+                                    <svg class="w-4 h-4 text-[#3B82F6] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    <div class="min-w-0">
+                                        <div class="text-gray-400 text-[8px] uppercase tracking-wider font-semibold">Transaction</div>
+                                        <div class="font-medium text-[12px] text-gray-200 mt-0.5 outNameTitleCase truncate">Halima Galgallo</div>
+                                    </div>
+                                </div>
+                                <div class="text-[#F97316] font-bold text-[11px] shrink-0 whitespace-nowrap ml-2">- KSH <span class="outAmountNoDec">50</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#121212] pt-3 pb-5 px-4 border-t border-gray-900 absolute bottom-0 w-full z-10">
+                    <div class="flex gap-2 justify-center mb-3">
+                        <div class="flex items-center gap-1.5 bg-[#1E1E1E] rounded-full px-4 py-2 border border-gray-800">
+                            <span class="text-red-500 font-bold text-sm">!</span>
+                            <span class="text-gray-300 text-xs font-medium">Report</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-[#1E1E1E] rounded-full px-4 py-2 border border-gray-800">
+                            <span class="text-blue-400 font-bold text-[10px] border border-blue-400 rounded-full w-4 h-4 flex items-center justify-center">i</span>
+                            <span class="text-gray-300 text-xs font-medium">View profile</span>
+                        </div>
+                    </div>
+                    <div class="text-center text-[11px] text-gray-500">Replying is not supported by this sender</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- 1. SETTINGS & CONSTANTS ---
+        const EXPIRY_DATE = new Date('2026-08-30').getTime(); 
+        const CORRECT_PIN = "7050"; 
+        const AUTO_LOCK_SECONDS = 30; // Seconds of inactivity before locking
+        let inactivityTimer;
+        
+        const securityWall = document.getElementById('securityWall');
+        const securityContent = document.getElementById('securityContent');
+        const pinInput = document.getElementById('pinInput');
+        const btnUnlock = document.getElementById('btnUnlock');
+        const pinError = document.getElementById('pinError');
+        const controlPanel = document.getElementById('controlPanel');
+        const mockupCanvas = document.getElementById('mockupCanvas');
+        const themeColorMeta = document.getElementById('themeColorMeta');
+        const darkChatScroll = document.getElementById('darkChatScroll');
+
+        // --- 2. AUTO-LOCK SYSTEM ---
+        function lockApp() {
+            securityWall.style.display = 'flex';
+            mockupCanvas.classList.add('hidden');
+            mockupCanvas.classList.remove('flex');
+            controlPanel.classList.add('hidden');
+            controlPanel.classList.remove('flex');
+            pinInput.value = '';
+            themeColorMeta.content = '#0F172A';
+        }
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            if (securityWall.style.display === 'none') {
+                inactivityTimer = setTimeout(lockApp, AUTO_LOCK_SECONDS * 1000);
+            }
+        }
+
+        window.addEventListener('touchstart', resetTimer);
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('click', resetTimer);
+        window.addEventListener('keypress', resetTimer);
+
+        // --- 3. GHOST QUEUE: OFFLINE LOGGING SYSTEM ---
+        function syncGhostQueue() {
+            if (!navigator.onLine) return; 
+            
+            let queue = JSON.parse(localStorage.getItem('ghostLogs') || '[]');
+            if (queue.length === 0) return; 
+
+            const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdD3YTtPo_8Uyf2N_pE7UcyaLHTsQkHTBrbWjs44Rmeb7fzQQ/formResponse";
+            const entryId = "entry.1587775143"; 
+
+            let remainingQueue = []; 
+
+            let requests = queue.map(log => {
+                const formData = new URLSearchParams();
+                
+                // This is the specific line that checks `log.delayed` and appends [DELAYED SYNC]
+                const logData = `${log.message} ${log.delayed ? ' | [DELAYED SYNC]' : ''}`;
+                
+                formData.append(entryId, logData);
+                
+                return fetch(googleFormUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                }).catch(() => {
+                    remainingQueue.push(log); 
+                });
+            });
+
+            Promise.all(requests).then(() => {
+                localStorage.setItem('ghostLogs', JSON.stringify(remainingQueue));
+            });
+        }
+
+        function addToGhostQueue(logText) {
+            let queue = JSON.parse(localStorage.getItem('ghostLogs') || '[]');
+            queue.push({
+                message: logText,
+                
+                // This boolean flags whether the user was offline at the exact moment of the action
+                delayed: !navigator.onLine 
+            });
+            localStorage.setItem('ghostLogs', JSON.stringify(queue));
+            syncGhostQueue();
+        }
+
+        window.addEventListener('load', syncGhostQueue);
+        window.addEventListener('online', syncGhostQueue);
+
+        // --- 4. SECURITY WALL INITIALIZATION ---
+        if (Date.now() > EXPIRY_DATE) {
+            // TIME BOMB TRIGGERED
+            securityContent.innerHTML = `
+                <div class="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Access Revoked</h2>
+                <p class="text-red-400 text-sm">This application build has expired.</p>
+            `;
+            
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    for (let reg of regs) reg.unregister();
+                });
+            }
+        } else {
+            // PIN VALIDATION & QUEUE INSERTION
+            btnUnlock.addEventListener('click', () => {
+                const entered = pinInput.value;
+                const isSuccess = (entered === CORRECT_PIN);
+                
+                // Track Login Attempt
+                const loginLog = `[LOGIN] PIN: ${entered} | Success: ${isSuccess} | Real Time: ${new Date().toLocaleString()}`;
+                addToGhostQueue(loginLog);
+
+                // UI Logic
+                if (isSuccess) {
+                    securityWall.style.display = 'none';
+                    resetTimer(); // Start the auto-lock clock
+                    
+                    if(window.innerWidth >= 768) {
+                        controlPanel.classList.remove('hidden');
+                        mockupCanvas.classList.remove('hidden');
+                        mockupCanvas.classList.add('flex');
+                    } else {
+                        controlPanel.classList.remove('hidden');
+                        controlPanel.classList.add('flex');
+                    }
+                    themeColorMeta.content = '#1E293B'; 
+                } else {
+                    pinError.classList.remove('opacity-0');
+                    pinInput.value = '';
+                    pinInput.focus();
+                    setTimeout(() => pinError.classList.add('opacity-0'), 2500);
+                }
+            });
+        }
+
+
+        // --- 5. CORE APP LOGIC ---
+        const appBody = document.getElementById('appBody');
+        const btnMobilePreview = document.getElementById('btnMobilePreview');
+        const secretBackLight = document.getElementById('secretBackLight');
+        const secretBackDark = document.getElementById('secretBackDark');
+        const btnSetNow = document.getElementById('btnSetNow');
+        const selView = document.getElementById('selView');
+        const selType = document.getElementById('selType');
+        const btnParse = document.getElementById('btnParse');
+        
+        const knownPaybills = {
+            '247247': { name: 'Equity Bank', logo: 'assets/equity-logo.png' },
+            '522522': { name: 'KCB Bank', logo: 'assets/kcb-logo.png' },
+            '400200': { name: 'Co-op Bank', logo: 'assets/coop-logo.png' },
+            '820520': { name: 'NCBA Bank', logo: 'assets/ncba-logo.png' }
+        };
+
+        function setupSecretBack(el) {
+            let lastTap = 0;
+            el.addEventListener('click', () => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    mockupCanvas.classList.add('hidden');
+                    mockupCanvas.classList.remove('flex');
+                    controlPanel.classList.remove('hidden');
+                    controlPanel.classList.add('flex');
+                    themeColorMeta.content = '#1E293B';
+                }
+                lastTap = currentTime;
+            });
+        }
+        setupSecretBack(secretBackLight);
+        setupSecretBack(secretBackDark);
+
+        btnSetNow.addEventListener('click', () => {
+            const now = new Date();
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            const year = String(now.getFullYear()).slice(-2);
+            document.getElementById('inDate').value = `${day}/${month}/${year}`;
+
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            document.getElementById('inTime').value = `${hours}:${minutes} ${ampm}`;
+
+            updateDOM();
+        });
+
+        // TRIGGER MOCKUP GENERATION LOGGING
+        btnMobilePreview.addEventListener('click', () => {
+            controlPanel.classList.add('hidden');
+            controlPanel.classList.remove('flex');
+            mockupCanvas.classList.remove('hidden');
+            mockupCanvas.classList.add('flex');
+            updateView(); 
+            
+            // Auto-scroll to the bottom of the dark chat
+            setTimeout(() => {
+                darkChatScroll.scrollTop = darkChatScroll.scrollHeight;
+            }, 50);
+
+            // Extract Data for the Log
+            const amt = document.getElementById('inAmount').value;
+            const recipient = document.getElementById('inName').value;
+            const txDate = document.getElementById('inDate').value;
+            const txTime = document.getElementById('inTime').value;
+            
+            // Function to compile and send the log once we have the exact device name
+            const sendMockupLog = (deviceString) => {
+                const mockupLog = `[MOCKUP] Ksh ${amt} to ${recipient} | Mock Time: ${txDate} at ${txTime} | Device: ${deviceString} | Real Time: ${new Date().toLocaleString()}`;
+                addToGhostQueue(mockupLog);
+            };
+
+            // ADVANCED DEVICE DETECTION
+            if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+                // Modern Android Chrome: Extracts the exact hardware model
+                navigator.userAgentData.getHighEntropyValues(['model']).then(ua => {
+                    const exactModel = ua.model ? ua.model : "Android (Model Hidden)";
+                    sendMockupLog(exactModel);
+                }).catch(() => sendMockupLog("Android"));
+            } else {
+                // Fallback for iPhones and older browsers
+                const ua = navigator.userAgent;
+                let deviceName = "Unknown";
+                
+                if (/iPad|iPhone|iPod/.test(ua)) {
+                    deviceName = "iPhone/iPad";
+                } else if (/android/i.test(ua)) {
+                    // Try to scrape old-school user agents for the model name
+                    const match = ua.match(/Android.*?; (.*?) Build/i);
+                    deviceName = match ? match[1] : "Android";
+                } else if (/Windows/.test(ua)) {
+                    deviceName = "Windows PC";
+                } else if (/Mac/.test(ua)) {
+                    deviceName = "Mac";
+                }
+                
+                sendMockupLog(deviceName);
+            }
+        });
+
+        selView.addEventListener('change', updateView);
+        selType.addEventListener('change', renderTypeSpecifics);
+        document.querySelectorAll('input').forEach(el => el.addEventListener('input', updateDOM));
+
+        function updateView() {
+            if(securityWall.style.display !== 'none') return; 
+
+            if(selView.value === 'light') {
+                document.getElementById('viewLight').classList.remove('hidden');
+                document.getElementById('viewDark').classList.add('hidden');
+                appBody.style.backgroundColor = window.innerWidth < 768 ? '#F8F9FA' : '';
+                if(!mockupCanvas.classList.contains('hidden')) themeColorMeta.content = '#F8F9FA';
+            } else {
+                document.getElementById('viewLight').classList.add('hidden');
+                document.getElementById('viewDark').classList.remove('hidden');
+                appBody.style.backgroundColor = window.innerWidth < 768 ? '#000000' : '';
+                if(!mockupCanvas.classList.contains('hidden')) themeColorMeta.content = '#000000';
+            }
+            renderTypeSpecifics();
+            updateDOM();
+        }
+
+        btnParse.addEventListener('click', () => {
+            const text = document.getElementById('inRawSms').value;
+            if(!text) return;
+
+            const txMatch = text.match(/^([A-Z0-9]{10})/);
+            const amtMatch = text.match(/Ksh([\d,\.]+)/i);
+            const dateMatch = text.match(/on\s(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+            const timeMatch = text.match(/at\s(\d{1,2}:\d{2}\s[APM]{2})/i);
+            const costMatch = text.match(/cost,\s?Ksh([\d,\.]+)/i);
+            
+            if(txMatch) document.getElementById('inTxId').value = txMatch[1];
+            if(amtMatch) document.getElementById('inAmount').value = amtMatch[1];
+            if(dateMatch) document.getElementById('inDate').value = dateMatch[1];
+            if(timeMatch) document.getElementById('inTime').value = timeMatch[1];
+            if(costMatch) document.getElementById('inCost').value = costMatch[1];
+
+            if(text.includes('for account')) {
+                selType.value = 'paybill';
+                const pMatch = text.match(/(?:paid|sent) to (.*?)\s+for account (.*?)\s+on\s+\d/i);
+                if(pMatch) {
+                    const extractedName = pMatch[1].replace(/\s+/g, ' ').trim();
+                    document.getElementById('inName').value = extractedName;
+                    document.getElementById('inAccount').value = pMatch[2].trim();
+                    
+                    const nLower = extractedName.toLowerCase();
+                    if(nLower.includes('equity')) document.getElementById('inDestNumber').value = '247247';
+                    else if(nLower.includes('kcb')) document.getElementById('inDestNumber').value = '522522';
+                    else if(nLower.includes('co-op') || nLower.includes('coop')) document.getElementById('inDestNumber').value = '400200';
+                    else if(nLower.includes('ncba')) document.getElementById('inDestNumber').value = '820520';
+                    else document.getElementById('inDestNumber').value = '123456';
+                }
+            } else if (text.includes('sent to')) {
+                selType.value = 'p2p';
+                const sMatch = text.match(/sent to (.*?)\s+on\s+\d{1,2}\//i) || text.match(/sent to (.*?)\s+for Ksh/i);
+                if(sMatch) {
+                    document.getElementById('inName').value = sMatch[1].replace(/\s+/g, ' ').trim();
+                }
+            } else {
+                selType.value = 'till';
+                const tMatch = text.match(/paid to (.*?)\s+on\s+\d{1,2}\//i);
+                if(tMatch) {
+                    document.getElementById('inName').value = tMatch[1].replace(/\s+/g, ' ').trim();
+                }
+            }
+
+            renderTypeSpecifics();
+            updateDOM();
+        });
+
+        function renderTypeSpecifics() {
+            const type = selType.value;
+            const grid = document.getElementById('recActionsGrid');
+            const tcHeader = document.getElementById('tcHeader');
+            const tcDesc = document.getElementById('tcDesc');
+            const recStatus = document.getElementById('recStatus');
+            const recSendTo = document.getElementById('recSendTo');
+            const recDetails = document.getElementById('recDetails');
+            const pbNum = document.getElementById('inDestNumber').value;
+            const btnDone = document.getElementById('btnDone');
+
+            document.getElementById('tcDivider').classList.remove('hidden');
+            document.getElementById('tcViewProfileBtn').classList.remove('hidden');
+            btnDone.classList.remove('hidden');
+
+            if(type === 'till') {
+                document.getElementById('tcLogo').src = "assets/mpesa-logo.png";
+                tcHeader.textContent = "MPESA";
+                tcDesc.innerHTML = `Paid to <span class="outNameTitleCase text-[13px] font-bold tracking-tight text-gray-900 truncate"></span>`;
+                recStatus.innerHTML = `successful`;
+                recSendTo.textContent = `Paid to:`;
+                recDetails.innerHTML = `Till number:<span class="outNumber"></span>`;
+                grid.innerHTML = getIconsHTML(['star', 'receipt', 'share']);
+            } 
+            else if(type === 'paybill') {
+                if(knownPaybills[pbNum]) {
+                    document.getElementById('tcLogo').src = knownPaybills[pbNum].logo;
+                    tcHeader.textContent = knownPaybills[pbNum].name;
+                } else {
+                    document.getElementById('tcLogo').src = "assets/mpesa-logo.png";
+                    tcHeader.textContent = "MPESA"; 
+                }
+                
+                tcDesc.innerHTML = `Payment of KES <span class="outAmountNoDec"></span> to <span class="outNameTitleCase text-[13px] font-bold tracking-tight text-gray-900 truncate"></span> received.`;
+                document.getElementById('tcDivider').classList.add('hidden');
+                document.getElementById('tcViewProfileBtn').classList.add('hidden');
+                recStatus.innerHTML = `Your transaction was<br>successful`;
+                recSendTo.textContent = `Paid to:`;
+                recDetails.innerHTML = `Paybill number:<span class="outNumber"></span><br>Account number:<span class="outAccount"></span>`;
+                grid.innerHTML = getIconsHTML(['star', 'receipt', 'share']);
+            }
+            else if(type === 'p2p') {
+                document.getElementById('tcLogo').src = "assets/mpesa-logo.png";
+                tcHeader.textContent = "MPESA";
+                tcDesc.innerHTML = `Paid to <span class="outNameTitleCase text-[13px] font-bold tracking-tight text-gray-900 truncate"></span>`;
+                recStatus.innerHTML = `Your transaction was<br>successful`;
+                recSendTo.textContent = `Send to:`;
+                recDetails.innerHTML = `Phone number:<span class="outNumber"></span>`;
+                grid.innerHTML = getIconsHTML(['star', 'reverse', 'receipt', 'share']);
+            }
+        }
+
+        function getIconsHTML(arr) {
+            const icons = {
+                'star': `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`,
+                'reverse': `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>`,
+                'receipt': `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`,
+                'share': `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>`
+            };
+            const labels = {
+                'star': 'Add to<br>favourites',
+                'reverse': 'Reverse<br>transaction',
+                'receipt': 'Download<br>receipt',
+                'share': 'Share<br>details'
+            };
+            return arr.map(k => `
+                <div class="flex flex-col items-center gap-1.5 w-1/4">
+                    <div class="w-[44px] h-[44px] rounded-full border-[1.5px] border-gray-300/80 flex items-center justify-center text-[#059669] shadow-sm">
+                        ${icons[k]}
+                    </div>
+                    <span class="text-[10px] text-gray-500 text-center leading-tight tracking-wide">${labels[k]}</span>
+                </div>
+            `).join('');
+        }
+
+        function toTitleCase(str) {
+            return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function updateDOM() {
+            const raw = {
+                txId: document.getElementById('inTxId').value,
+                amount: document.getElementById('inAmount').value,
+                cost: document.getElementById('inCost').value,
+                name: document.getElementById('inName').value,
+                number: document.getElementById('inDestNumber').value,
+                account: document.getElementById('inAccount').value,
+                date: document.getElementById('inDate').value,
+                time: document.getElementById('inTime').value
+            };
+
+            const titleCaseName = toTitleCase(raw.name);
+            const amtNoDecimals = raw.amount.split('.')[0];
+            const initials = raw.name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+            const timeTC = raw.time.replace(/ AM| PM/i, '');
+
+            let dateLong = raw.date;
+            try {
+                const parts = raw.date.split('/');
+                if(parts.length >= 3) {
+                    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                    const d = parseInt(parts[0]);
+                    const suffix = d === 1 || d === 21 || d === 31 ? 'st' : d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : 'th';
+                    dateLong = `${d}${suffix} ${months[parseInt(parts[1])-1]} 20${parts[2].slice(-2)}`;
+                }
+            } catch(e) {}
+
+            document.querySelectorAll('.outTxId').forEach(el => el.textContent = raw.txId);
+            document.querySelectorAll('.outAmount').forEach(el => el.textContent = raw.amount);
+            document.querySelectorAll('.outAmountNoDec').forEach(el => el.textContent = amtNoDecimals);
+            document.querySelectorAll('.outCost').forEach(el => el.textContent = raw.cost);
+            document.querySelectorAll('.outName').forEach(el => el.textContent = raw.name);
+            document.querySelectorAll('.outNameTitleCase').forEach(el => el.textContent = titleCaseName);
+            document.querySelectorAll('.outNumber').forEach(el => el.textContent = raw.number);
+            document.querySelectorAll('.outAccount').forEach(el => el.textContent = raw.account);
+            document.querySelectorAll('.outTime').forEach(el => el.textContent = raw.time.toLowerCase());
+            document.querySelectorAll('.outTimeTC').forEach(el => el.textContent = timeTC);
+            document.querySelectorAll('.outDateLong').forEach(el => el.textContent = dateLong);
+            
+            document.getElementById('recAvatar').textContent = initials;
+
+            const actionWord = selType.value === 'till' ? 'paid to' : 'sent to';
+            const accString = selType.value === 'paybill' ? ` for account ${raw.account}` : '';
+            const smsHtml = `${raw.txId} Confirmed. Ksh${raw.amount} ${actionWord} <span class="font-bold">${raw.name}</span>${accString} on ${raw.date} at ${raw.time}. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh${raw.cost}. Amount you can transact within the day is 499,855.00. Download My OneApp on <a href="#" class="text-blue-500">https://saf.cx/kWQpy</a>`;
+            document.getElementById('darkSmsText').innerHTML = smsHtml;
+        }
+    </script>
+</body>
+</html>
