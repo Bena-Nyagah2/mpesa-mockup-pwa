@@ -758,7 +758,7 @@
         });
 
         selView.addEventListener('change', updateView);
-        selType.addEventListener('change', renderTypeSpecifics);
+        selType.addEventListener('change', () => { renderTypeSpecifics(); updateDOM(); });
         document.querySelectorAll('input').forEach(el => el.addEventListener('input', updateDOM));
 
         function updateView() {
