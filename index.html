@@ -547,15 +547,6 @@
                     refreshAdminStats();
                     themeColorMeta.content = '#0F172A';
                 } else if (isUser) {
-                    // Check rate limit before unlocking
-                    if (isRateLimited()) {
-                        recordUsage('RATE_LIMITED', '');
-                        getDeviceLabel().then(device => {
-                            addToGhostQueue(`[USER:${CURRENT_USER_ID.slice(0,8)}] [DEVICE:${device}] [ACTION:RATE_LIMITED] Used: ${getTodayUsageCount()}/${getDailyLimit()} | Real: ${new Date().toLocaleString()}`);
-                        });
-                        showRateLimitBlock();
-                        return;
-                    }
                     securityWall.style.display = 'none';
                     resetTimer();
                     
